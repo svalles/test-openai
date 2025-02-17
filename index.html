@@ -99,6 +99,27 @@
       font-weight: bold;
       color: #fff;
     }
+    .directory-table {
+      margin-top: 30px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .directory-table th, .directory-table td {
+      border: 1px solid #3a3a50;
+      padding: 10px;
+      text-align: center;
+    }
+    .directory-table th {
+      background: #2a2a40;
+      color: #a4c7f2;
+    }
+    .directory-table td {
+      background: #34344a;
+      color: #fff;
+    }
+    .highlight {
+      background: #ff6b6b !important;
+    }
     @keyframes fadeIn {
       to {
         opacity: 1;
@@ -126,14 +147,27 @@
     <button onclick="decomposeAddress()">Descomponer Dirección</button>
     <div id="error" class="error"></div>
     <div id="result" class="result-container"></div>
+    <table id="directoryTable" class="directory-table">
+      <thead>
+        <tr>
+          <th>Entrada</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Las filas se generarán dinámicamente -->
+      </tbody>
+    </table>
   </div>
   
   <script>
     function decomposeAddress() {
       const resultContainer = document.getElementById('result');
       const errorDiv = document.getElementById('error');
+      const directoryTableBody = document.getElementById('directoryTable').querySelector('tbody');
       resultContainer.innerHTML = ''; // Limpiar resultados previos
       errorDiv.textContent = ''; // Limpiar mensajes de error
+      directoryTableBody.innerHTML = ''; // Limpiar tabla de directorio
       
       const input = document.getElementById('virtualAddress').value.trim();
       if (!input) {
@@ -177,6 +211,24 @@
         box.appendChild(value);
         resultContainer.appendChild(box);
       });
+      
+      // Crear la tabla de directorio
+      for (let i = 0; i < 10; i++) {
+        const row = document.createElement('tr');
+        const entryCell = document.createElement('td');
+        const valueCell = document.createElement('td');
+        
+        entryCell.textContent = i;
+        valueCell.textContent = '0x' + i.toString(16).toUpperCase();
+        
+        if (i === dirIndex) {
+          row.classList.add('highlight');
+        }
+        
+        row.appendChild(entryCell);
+        row.appendChild(valueCell);
+        directoryTableBody.appendChild(row);
+      }
     }
   </script>
 </body>
