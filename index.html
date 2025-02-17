@@ -1,37 +1,183 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabla Drag-and-Drop</title>
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador de Paginación Intel 32 bits</title>
+  <!-- Usamos Google Fonts para un look moderno -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #252540);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(20, 20, 30, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #a4c7f2;
+    }
+    p.description {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #c0c0c0;
+    }
+    .input-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border: 2px solid #3a3a50;
+      border-radius: 5px;
+      background: #2a2a40;
+      color: #fff;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 1.1rem;
+      background: #a4c7f2;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #8fb3e3;
+    }
+    .result-container {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+    }
+    .result-box {
+      background: #34344a;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.5s forwards;
+    }
+    .result-box h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #a4c7f2;
+    }
+    .result-box p {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .error {
+      text-align: center;
+      margin-top: 20px;
+      color: #ff6b6b;
+      font-size: 1.1rem;
+    }
+  </style>
 </head>
 <body>
-
-    <div id="contenedor-tabla">
-        <table>
-            <thead>
-                <tr>
-                    <th>Puntero 1</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" name="puntero1"></td>
-                </tr>
-                <tr>
-                    <td><input type="text" name="puntero1"></td>
-                </tr>
-                <tr>
-                    <td><input type="text" name="puntero1"></td>
-                </tr>
-                <tr>
-                    <td><input type="text" name="puntero1"></td>
-                </tr>
-            </tbody>
-        </table>
+  <div class="container">
+    <h1>Simulador de Paginación Intel 32 bits</h1>
+    <p class="description">
+      Ingresa una dirección virtual (en hexadecimal) y observa cómo se descompone en sus componentes.
+    </p>
+    <div class="input-group">
+      <label for="virtualAddress">Dirección Virtual (ej. 0xDEADBEEF):</label>
+      <input type="text" id="virtualAddress" placeholder="0xDEADBEEF">
     </div>
-
-    <script src="js/script.js"></script>
+    <button onclick="decomposeAddress()">Descomponer Dirección</button>
+    <div id="error" class="error"></div>
+    <div id="result" class="result-container"></div>
+  </div>
+  
+  <script>
+    function decomposeAddress() {
+      const resultContainer = document.getElementById('result');
+      const errorDiv = document.getElementById('error');
+      resultContainer.innerHTML = ''; // Limpiar resultados previos
+      errorDiv.textContent = ''; // Limpiar mensajes de error
+      
+      const input = document.getElementById('virtualAddress').value.trim();
+      if (!input) {
+        errorDiv.textContent = 'Por favor, ingresa una dirección virtual.';
+        return;
+      }
+      
+      // Convertir la entrada hexadecimal a número
+      let virtualAddress = parseInt(input, 16);
+      if (isNaN(virtualAddress)) {
+        errorDiv.textContent = 'Entrada inválida. Asegúrate de usar formato hexadecimal.';
+        return;
+      }
+      
+      // Descomposición de la dirección (32 bits):
+      // - 10 bits para el directorio (bits 31-22)
+      // - 10 bits para la tabla (bits 21-12)
+      // - 12 bits para el offset (bits 11-0)
+      const dirIndex = (virtualAddress >>> 22) & 0x3FF;
+      const tableIndex = (virtualAddress >>> 12) & 0x3FF;
+      const offset = virtualAddress & 0xFFF;
+      
+      const results = [
+        { title: 'Dirección Virtual', value: '0x' + virtualAddress.toString(16).toUpperCase() },
+        { title: 'Índice Directorio (10 bits)', value: '0x' + dirIndex.toString(16).toUpperCase() },
+        { title: 'Índice Tabla (10 bits)', value: '0x' + tableIndex.toString(16).toUpperCase() },
+        { title: 'Offset (12 bits)', value: '0x' + offset.toString(16).toUpperCase() }
+      ];
+      
+      results.forEach((res, index) => {
+        const box = document.createElement('div');
+        box.className = 'result-box';
+        box.style.animationDelay = (index * 0.1) + 's';
+        
+        const title = document.createElement('h3');
+        title.textContent = res.title;
+        const value = document.createElement('p');
+        value.textContent = res.value;
+        
+        box.appendChild(title);
+        box.appendChild(value);
+        resultContainer.appendChild(box);
+      });
+    }
+  </script>
 </body>
 </html>
